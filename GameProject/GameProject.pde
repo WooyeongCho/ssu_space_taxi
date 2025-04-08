@@ -17,6 +17,7 @@ PImage star1Img;
 PImage star2Img;
 PImage star3Img;
 PImage ssuBodyImg;
+PImage ssuBodyImg;
 
 PImage logoImage;
 PImage startImage;
@@ -25,6 +26,8 @@ PFont neodgm;
 PImage passiveMonsterImg;
 PImage activeMonsterImg;
 PImage enemyBulletImg;
+
+PImage phoneImg;
 
 PImage phoneImg;
 
