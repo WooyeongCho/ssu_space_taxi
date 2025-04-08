@@ -7,6 +7,9 @@ Player player;
 PImage playerImg;
 PImage bossImg;
 PImage backgroundImage; 
+
+
+
 PImage logoImage;
 PImage startImage;
 PImage ssuTaxiImage;
@@ -33,7 +36,11 @@ float shakeY = 0;
 int shakeTimer = 0;
 float shakeStrength = 5;
 String playerName = "";
-boolean typingName = false;
+boolean typingName = true;  // 입력 중
+int cursorBlinkTimer = 0;
+boolean showCursor = true;
+String warningText = "";
+int warningTimer = 0;
 
 void setup() {
   size(800, 600);
@@ -188,21 +195,29 @@ void checkCollisions() {
   player.checkCollision(enemyBullets);
 }
 
-
 void keyPressed() {
-    if (key == 'a' || key == 'A') currentDir = 'L';
-    if (key == 'd' || key == 'D') currentDir = 'R';
-      
-    if (key == ' ') spacePressed = true;
-    println("keyPressed: " + key + ", currentDir: " + currentDir);  // 디버깅용
+  if (typingName) {
+    if (key == BACKSPACE && playerName.length() > 0) {
+      playerName = playerName.substring(0, playerName.length() - 1);
+    } else if (key == ENTER || key == RETURN) {
+      typingName = false;  // 이름 입력 완료
+    } else if (key != CODED && playerName.length() < 12) {
+      playerName += key;
+    }
   }
 
-  void keyReleased() {
-    if ((key == 'a' || key == 'A') && currentDir == 'L') currentDir = ' ';
-    if ((key == 'd' || key == 'D') && currentDir == 'R') currentDir = ' ';
-      
-    if (key == ' ') spacePressed = false;
-  }
+  // 방향키 입력 등 기존 처리
+  if (key == 'a' || key == 'A') currentDir = 'L';
+  if (key == 'd' || key == 'D') currentDir = 'R';
+  if (key == ' ') spacePressed = true;
+}
+
+void keyReleased() {
+  if ((key == 'a' || key == 'A') && currentDir == 'L') currentDir = ' ';
+  if ((key == 'd' || key == 'D') && currentDir == 'R') currentDir = ' ';
+    
+  if (key == ' ') spacePressed = false;
+}
 
 void drawUI() {
   float barWidth = 200;
@@ -260,22 +275,24 @@ void startGame() {
 
 void mousePressed() {
   if (gameState.equals("menu")) {
-    float buttonX = width/2;
+    float buttonX = width / 2;
     float buttonY = height - 110;
     float buttonWidth = 120;
     float buttonHeight = 55;
 
     if (mouseX > buttonX - buttonWidth/2 && mouseX < buttonX + buttonWidth/2 &&
         mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2) {
-      startGame();  // 🚀 게임 시작
-    }
-  } else if (gameState.equals("gameover")) {
-    if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 &&
-        mouseY > height / 2 + 80 && mouseY < height / 2 + 130) {
-      gameState = "menu";  // 다시 메뉴로
+        
+      if (playerName.trim().equals("")) {
+        warningText = "이름을 입력하세요!";
+        warningTimer = 120;  // 2초
+      } else {
+        startGame();  // 이름이 있으면 시작
+      }
     }
   }
 }
+
 
 void drawMenu() {
   background(0);
@@ -285,7 +302,8 @@ void drawMenu() {
   imageMode(CENTER);
   image(ssuTaxiImage, width/2 + sin(xTemp) * 300, height/2 + sin(yTemp) * 40, 150, 150);
   image(logoImage, width/2, 150, 310, 155);
-  image(startImage, width/2, height - 110, 120, 55);
+  // 게임 시작 버튼 Y위치 조정
+image(startImage, width / 2, height - 70, 120, 55);
 
   textFont(neodgm);
   fill(255);
@@ -298,6 +316,39 @@ void drawMenu() {
 
   xTemp = (xTemp + 0.01) % TWO_PI;
   yTemp = (yTemp + 0.02) % TWO_PI;
+
+  // 이름 입력 박스
+  fill(255);
+  textSize(18);
+  textAlign(CENTER);
+  text("플레이어 이름을 입력하세요", width / 2, height / 2 + 140);
+
+  // 입력 박스 그리기
+  fill(30);
+  stroke(255);
+  rectMode(CENTER);
+  rect(width / 2, height / 2 + 175, 300, 40);
+  fill(255);
+  noStroke();
+
+  String displayName = playerName;
+  if (typingName && showCursor) displayName += "|";  // 깜빡이는 커서
+
+  text(displayName, width / 2, height / 2 + 180);
+
+  // 커서 깜빡임
+  cursorBlinkTimer++;
+  if (cursorBlinkTimer > 30) {
+    showCursor = !showCursor;
+    cursorBlinkTimer = 0;
+  }
+  if (warningTimer > 0) {
+    fill(255, 50, 50);
+    textSize(18);
+    textAlign(CENTER);
+    text(warningText, width / 2, height / 2 + 220);
+    warningTimer--;
+  }
 }
 
 
