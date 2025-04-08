@@ -19,9 +19,20 @@ class Player {
  
 
   void move() {
-    if (currentDir == 'L') x -= speed;
-    else if (currentDir == 'R') x += speed;
-  }
+  if (currentDir == 'L') x -= speed;
+  if (currentDir == 'R') x += speed;
+  if (currentDir == 'U') y -= speed;
+  if (currentDir == 'D') y += speed;
+
+  x = constrain(x, 0, width - 80);
+  y = constrain(y, 0, height - 80);
+
+  // 이동할 때 파티클 생성
+  // if (currentDir != ' ') {
+  //   trails.add(new Trail(x, y));
+  // }
+  particles.add(new Particle(x + 40, y + 80));  // 플레이어 아래쪽에서 발생
+}
 
 void display() {
   imageMode(CENTER);

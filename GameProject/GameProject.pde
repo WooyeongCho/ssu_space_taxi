@@ -5,9 +5,11 @@ ArrayList<Enemy> enemies;
 ArrayList<Item> items;
 ArrayList<Star> stars;
 Player player;
+ArrayList<Particle> particles = new ArrayList<Particle>();
+ArrayList<Trail> trails = new ArrayList<Trail>();
 PImage playerImg;
 PImage bossImg;
-PImage backgroundImage; 
+PImage backgroundImage;
 
 PImage star1Img;
 PImage star2Img;
@@ -91,6 +93,8 @@ void draw() {
     shakeTimer--;
   }
 
+
+
   if (gameState.equals("playing")) {
     runGame();
     if (enemies.size() == 0) {
@@ -108,7 +112,7 @@ void draw() {
   }
 
   if (frameCount % 60 == 0) {
-    println("FPS: " + frameRate);
+    //println("FPS: " + frameRate);
   }
 
   for (int i = items.size() - 1; i >= 0; i--) {
@@ -128,10 +132,21 @@ void draw() {
     text(effectText, player.x + 25, player.y - 10);
     effectTextTimer--;
   }
-}
+  for (int i = particles.size() - 1; i >= 0; i--) {
+    Particle p = particles.get(i);
+    p.update();
+    p.display();
+    if (p.isDead()) {
+      particles.remove(i);
+    }
+
+  }
+} 
+
 
 void runGame() {
-  drawBackground();
+  resetMatrix();  // 화면 흔들림 좌표 초기화
+  drawBackground(); // 배경 그리기
   player.move();
   player.display();
   player.shoot(playerBullets);
@@ -226,17 +241,22 @@ void keyPressed() {
   // 방향키 입력 등 기존 처리
   if (key == 'a' || key == 'A') currentDir = 'L';
   if (key == 'd' || key == 'D') currentDir = 'R';
+  if (key == 'w' || key == 'W') currentDir = 'U';
+  if (key == 's' || key == 'S') currentDir = 'D';
   if (key == ' ') spacePressed = true;
 }
 
 void keyReleased() {
   if ((key == 'a' || key == 'A') && currentDir == 'L') currentDir = ' ';
   if ((key == 'd' || key == 'D') && currentDir == 'R') currentDir = ' ';
-    
+  if ((key == 'w' || key == 'W') && currentDir == 'U') currentDir = ' ';
+  if ((key == 's' || key == 'S') && currentDir == 'D') currentDir = ' ';
   if (key == ' ') spacePressed = false;
 }
 
 void drawUI() {
+  resetMatrix();  // 화면 흔들림 좌표 초기화
+  rectMode(CORNER);
   float barWidth = 200;
   float barHeight = 20;
   float barX = 20;
@@ -262,8 +282,16 @@ void drawUI() {
   textSize(14);
   textAlign(LEFT, BOTTOM);
   text("HP: " + int(player.hp), barX, barY - 5);
+
+    // 이름 표시
+  fill(255);
+  textSize(14);
+  textAlign(RIGHT, BOTTOM);
+  text("Name: " + playerName, width - 20, height - 40);  // 스테이지 위에 조그맣게
+
   fill(255);
   textSize(16);
+  textAlign(LEFT, BOTTOM);
   text("STAGE " + stageLevel, width - 100, height - 20);
   fill(255);
   fill(255);
@@ -275,11 +303,11 @@ void drawUI() {
   if (stageAnnounceTimer > 0) {
   textAlign(CENTER, CENTER);
   textSize(48);
-  
+
   int alpha = int(map(stageAnnounceTimer, 120, 0, 255, 0));  // 점점 투명하게
   fill(255, alpha);
   text(currentStageText, width / 2, height / 2);
-  
+
   stageAnnounceTimer--;
 }
 }
@@ -287,19 +315,21 @@ void drawUI() {
 
 void startGame() {
   gameState = "playing";
-  setupGame();  // 변수 초기화 등
+  typingName = false;  // ✅ 이름 입력 종료!
+  setupGame();
+  println("플레이어 이름: " + playerName);  // ✅ 디버깅용 출력
 }
 
 void mousePressed() {
   if (gameState.equals("menu")) {
     float buttonX = width / 2;
-    float buttonY = height - 110;
+    float buttonY = height - 70;
     float buttonWidth = 120;
     float buttonHeight = 55;
 
     if (mouseX > buttonX - buttonWidth/2 && mouseX < buttonX + buttonWidth/2 &&
         mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2) {
-        
+
       if (playerName.trim().equals("")) {
         warningText = "이름을 입력하세요!";
         warningTimer = 120;  // 2초
@@ -423,7 +453,7 @@ void spawnStage2() {
   for (int i = 0; i < 5; i++) {
     float x = 100 + i * 120;
     float shootCD = 1000 + i * 200;  // 쿨타임 다르게
-    enemies.add(new Enemy(x, 0, 100, 1.2, EnemyType.SHOOTER, 0, shootCD));
+    enemies.add(new Enemy(x, 0, 300, 1.2, EnemyType.SHOOTER, 0, shootCD));
   }
 }
 
@@ -431,7 +461,7 @@ void spawnStage3() {
   for (int i = 0; i < 3; i++) {
     float x = 150 + i * 200;
     float stopY = 120 + i * 40;  // Y위치 다르게
-    enemies.add(new Enemy(x, 0, 120, 1.5, EnemyType.MOVER, stopY, 700 + i * 150));
+    enemies.add(new Enemy(x, 0, 500, 1.5, EnemyType.MOVER, stopY, 700 + i * 150));
   }
 }
 
@@ -481,9 +511,9 @@ void applyItemEffect(String type) {
     player.bulletsPerShot += 1;
     player.effectTimer = 60;
     showEffectText("총알 수 증가!!");
-  } 
+  }
   else if (type.equals("cooldown")) {
-    player.shotCooldown = max(player.shotCooldown - 100, 100);
+    player.shotCooldown = max(player.shotCooldown - 50, 100);
     player.effectTimer = 60;
     showEffectText("공격속도 상승!");
   }
