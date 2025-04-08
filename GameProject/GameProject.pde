@@ -25,14 +25,12 @@ PFont neodgm;
 PImage passiveMonsterImg;
 PImage activeMonsterImg;
 PImage enemyBulletImg;
-<<<<<<< Updated upstream
 
-PImage phoneImg;
-=======
 PImage viewRankingButtonImg;
+
 float buttonWidth = 120;
 float buttonHeight = 55;
->>>>>>> Stashed changes
+PImage phoneImg;
 
 float xTemp = 0;
 float yTemp = 0;
@@ -90,12 +88,9 @@ void setup() {
   star3Img = loadImage("Images/star3.png");
   increaseImg = loadImage("Images/Increase.png");
   reloadImg = loadImage("Images/Reload.png");
-<<<<<<< Updated upstream
   phoneImg = loadImage("Images/phone.png");
   ssuBodyImg = loadImage("Images/ssu_body.png");
-=======
   viewRankingButtonImg = loadImage("Images/Viewranking.png");  // 랭킹 보기 버튼 이미지
->>>>>>> Stashed changes
   textFont(font);
   playerBullets = new ArrayList<Bullet>();
   enemyBullets = new ArrayList<Bullet>();
@@ -363,6 +358,7 @@ void startGame() {
   setupGame();
   println("플레이어 이름: " + playerName);  // ✅ 디버깅용 출력
 }
+
 void mousePressed() {
   // 게임 시작 버튼 클릭 처리
   if (gameState.equals("menu")) {
@@ -405,17 +401,7 @@ void mousePressed() {
       gameState = "menu";  // 게임 화면으로 돌아가기
     }
   }
-
-  if (gameState.equals("prologue")) {
-    if (prologueIndex < prologueText.length - 1) {
-      prologueIndex++;
-    } else {
-      gameState = "menu";  // 프로로그 끝나면 메뉴로
-    }
-  }
 }
-
-
 
 void drawMenu() {
   background(0);
@@ -631,7 +617,7 @@ void drawBackground() {
 void sendScore(String name, int score) {
   String url = "https://script.google.com/macros/s/AKfycbxYKaFENO-G1pPn3fs4ssdWJ2cEDbP_aT759Zyq0sUxF9RmuSCxNLU4xEJ7rWIzyS7f/exec?action=submitScore&name=" + name + "&score=" + score;
   
-  // GET 요청으로  점수 제출출
+  // GET 요청으로 점수 제출
   loadStrings(url);
 }
 void loadRankings() {
@@ -639,8 +625,14 @@ void loadRankings() {
   
   // GET 요청으로 랭킹 데이터 가져오기
   String[] rankingsData = loadStrings(url);
+
+  // JSON 데이터를 첫 번째 줄에 있다고 가정
   String jsonString = rankingsData[0];
+
+  // 불필요한 문자 제거 (예: "[" , "]" 제거)
   jsonString = jsonString.replace("[", "").replace("]", "");
+
+  // 각 항목을 구분하여 처리 (JSON 객체는 중괄호로 묶여 있으므로 이를 쪼갬)
   String[] items = split(jsonString, "},{");
 
   // 아이템을 하나씩 처리
