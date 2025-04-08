@@ -32,6 +32,7 @@ class Enemy {
     this.x = x;
     this.y = y;
     this.hp = hp;
+    maxHp = hp;
     this.speed = speed;
     this.type = type;
     this.stopY = stopY;

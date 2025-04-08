@@ -8,6 +8,7 @@ Player player;
 ArrayList<Particle> particles = new ArrayList<Particle>();
 ArrayList<Trail> trails = new ArrayList<Trail>();
 ArrayList<Ranking> rankings = new ArrayList<Ranking>();
+boolean gameCleared = false;  // 게임 클리어 상태를 추적하는 변수 추가
 PImage increaseImg, reloadImg;
 PImage playerImg;
 PImage bossImg;
@@ -36,7 +37,15 @@ float xTemp = 0;
 float yTemp = 0;
 String gameState = "prologue";
 int score = 0;
+
+
+
+
 int stageLevel = 0;
+
+
+
+
 PFont font;
 char currentDir = ' ';
 String effectText = "";
@@ -54,6 +63,8 @@ int cursorBlinkTimer = 0;
 boolean showCursor = true;
 String warningText = "";
 int warningTimer = 0;
+long startTime = 0;
+long endTime = 0;
 
 int prologueIndex = 0;
 
@@ -143,6 +154,8 @@ void draw() {
     drawGameOver();
   } else if(gameState.equals("ranking")) {
     drawRanking();
+  } else if(gameState.equals("gameClear")) {
+    drawGameClear();
   }
 
   if (player.hp <= 0) {
@@ -200,7 +213,9 @@ void runGame() {
     Enemy e = enemies.get(i);
     e.update();
     e.display();
-
+    if (e.isBoss && e.hp <= 0) {
+      gameClear();  // 보스를 처치했으므로 게임 클리어 씬으로 넘어감
+    }
     if (e.isBoss) {
       drawBossUI(e);
       if (e.warningActive) {
@@ -357,6 +372,8 @@ void startGame() {
   typingName = false;  // ✅ 이름 입력 종료!
   setupGame();
   println("플레이어 이름: " + playerName);  // ✅ 디버깅용 출력
+  startTime = millis();  // 게임 시작 시간 기록
+  println("게임 시작 시간: " + startTime);  // ✅ 디버깅용 출력
 }
 
 void mousePressed() {
@@ -409,7 +426,20 @@ void mousePressed() {
       gameState = "menu";  // 게임 화면으로 돌아가기
     }
   }
+  if (gameState.equals("gameClear")) {
+    // 랭킹 등록 버튼 클릭 처리
+    float buttonWidth = 150;
+    float buttonHeight = 50;
+    float buttonX = width / 2;
+    float buttonY = height - 100;
 
+    // 클릭 범위 확인
+    if (mouseX > buttonX - buttonWidth / 2 && mouseX < buttonX + buttonWidth / 2 &&
+        mouseY > buttonY - buttonHeight / 2 && mouseY < buttonY + buttonHeight / 2) {
+          println("랭킹 등록 버튼 클릭됨");  // 디버깅용 출력
+      sendScore(playerName, int((endTime - startTime) / 1000));  // 구글 시트로 점수 및 시간 전송
+    }
+  }
   if (gameState.equals("prologue")) {
     if (prologueIndex < prologueText.length - 1) {
       prologueIndex++;
@@ -567,12 +597,56 @@ void setupStage(int stage) {
   else if (stage == 3) spawnStage3();
   else if (stage == 4) spawnBossStage();
 
-  currentStageText = "STAGE " + stage;
-  stageAnnounceTimer = 200;  // 2초 표시
+  if(stage != 4){
+
+    currentStageText = "STAGE " + stage;
+    stageAnnounceTimer = 200;  // 2초 표시
+  }else {
+
+  }
+
+}
+
+
+
+void gameClear() {
+  endTime = millis();  // 게임 종료 시간 기록
+  gameCleared = true;  // 게임 클리어 상태 설정
+  gameState = "gameClear";  // 게임 클리어 씬으로 전환
+}
+
+void drawGameClear() {
+  background(0);  // 배경색을 검정으로
+
+  // 게임 클리어 텍스트
+  fill(255);
+  textAlign(CENTER);
+  textSize(48);
+  text("GAME CLEAR", width / 2, height / 3);
+
+  // 게임 클리어 시간
+  long clearTimeInSeconds = (endTime - startTime) / 1000;  // 클리어 시간 (초 단위)
+  textSize(24);
+  text("Time: " + clearTimeInSeconds + " seconds", width / 2, height / 2);
+
+  // 랭킹 등록 버튼
+  float buttonWidth = 150;
+  float buttonHeight = 50;
+  float buttonX = width / 2;
+  float buttonY = height - 100;
+
+  // 버튼 배경
+  fill(50, 150, 255);
+  rect(buttonX - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight);
+
+  // 버튼 텍스트
+  fill(255);
+  textSize(20);
+  text("Register Ranking", buttonX, buttonY);
 }
 
 void spawnBossStage() {
-  Enemy boss = new Enemy(width / 2 - 75, -150, 1000, 1.2, EnemyType.MOVER, 70, 600);
+   Enemy boss = new Enemy(width / 2 - 75, -150, 50000, 1.2, EnemyType.MOVER, 70, 600);
 
   boss.isBoss = true;
   boss.maxHp = boss.hp;
@@ -633,9 +707,13 @@ void drawBackground() {
 
 void sendScore(String name, int score) {
   String url = "https://script.google.com/macros/s/AKfycbxYKaFENO-G1pPn3fs4ssdWJ2cEDbP_aT759Zyq0sUxF9RmuSCxNLU4xEJ7rWIzyS7f/exec?action=submitScore&name=" + name + "&score=" + score;
-  
-  // GET 요청으로 점수 제출
-  loadStrings(url);
+
+  String[] response = loadStrings(url);
+  if (response != null && response.length > 0) {
+    println("Response from server: " + response[0]);  // 서버 응답 출력
+  } else {
+    println("Failed to send score to Google Sheets");
+  }
 }
 void loadRankings() {
   String url = "https://script.google.com/macros/s/AKfycbxYKaFENO-G1pPn3fs4ssdWJ2cEDbP_aT759Zyq0sUxF9RmuSCxNLU4xEJ7rWIzyS7f/exec?action=getRankings";
