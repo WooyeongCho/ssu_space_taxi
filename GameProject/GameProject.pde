@@ -16,6 +16,7 @@ PImage backgroundImage;
 PImage star1Img;
 PImage star2Img;
 PImage star3Img;
+PImage ssuBodyImg;
 
 PImage logoImage;
 PImage startImage;
@@ -25,10 +26,12 @@ PImage passiveMonsterImg;
 PImage activeMonsterImg;
 PImage enemyBulletImg;
 
+PImage phoneImg;
+
 
 float xTemp = 0;
 float yTemp = 0;
-String gameState = "menu";
+String gameState = "prologue";
 int score = 0;
 int stageLevel = 0;
 PFont font;
@@ -48,6 +51,19 @@ int cursorBlinkTimer = 0;
 boolean showCursor = true;
 String warningText = "";
 int warningTimer = 0;
+
+int prologueIndex = 0;
+
+String[] prologueText = {
+  "슝슝이가 평화롭게 기조실 과제를 하던 어느 날이었어요.",
+  "밤을 새며 게임을 만들던 슝슝이는 그만 잠에 들고 말았어요.",
+  "그런데 갑자기",
+  "GYU라는 이름의 외계인이 나타나 슝슝이를 납치해갔어요!",
+  "외계인 GYU는 자신이 살고 있는 GYU-00 행성에 슝슝이를 데려갔어요",
+  "슝슝이는 GYU-00 행성에서 탈출하기 위해 우주택시를 호출했어요",
+  "하지만 GYU-00 행성은 위험천만한 곳이어서 괴물들을 무찌르며 나아가야 해요",
+  "슝슝이가 안전하게 SSU-25 행성까지 갈 수 있도록 도와주세요!"
+};
 
 void setup() {
   size(800, 600);
@@ -69,6 +85,8 @@ void setup() {
   star3Img = loadImage("Images/star3.png");
   increaseImg = loadImage("Images/Increase.png");
   reloadImg = loadImage("Images/Reload.png");
+  phoneImg = loadImage("Images/phone.png");
+  ssuBodyImg = loadImage("Images/ssu_body.png");
   textFont(font);
   playerBullets = new ArrayList<Bullet>();
   enemyBullets = new ArrayList<Bullet>();
@@ -98,7 +116,16 @@ void draw() {
     shakeTimer--;
   }
 
-
+  if (gameState.equals("prologue")) {
+    drawBackground();
+    
+    textFont(neodgm);
+    fill(255);
+    textAlign(CENTER);
+    text(prologueText[prologueIndex], width/2, height/2);
+    //imageMode(CENTER);
+    //image(phoneImg, width / 2, height / 2, 600, 600);
+  }
 
   if (gameState.equals("playing")) {
     runGame();
@@ -358,6 +385,14 @@ void mousePressed() {
     // 랭킹 화면에서 게임 화면으로 돌아가기
     if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 && mouseY > height - 100 && mouseY < height - 50) {
       gameState = "menu";  // 게임 화면으로 돌아가기
+    }
+  }
+
+  if (gameState.equals("prologue")) {
+    if (prologueIndex < prologueText.length - 1) {
+      prologueIndex++;
+    } else {
+      gameState = "menu";  // 프로로그 끝나면 메뉴로
     }
   }
 }
