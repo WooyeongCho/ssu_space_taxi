@@ -3,12 +3,15 @@ ArrayList<Bullet> playerBullets;
 ArrayList<Bullet> enemyBullets;
 ArrayList<Enemy> enemies;
 ArrayList<Item> items;
+ArrayList<Star> stars;
 Player player;
 PImage playerImg;
 PImage bossImg;
 PImage backgroundImage; 
 
-
+PImage star1Img;
+PImage star2Img;
+PImage star3Img;
 
 PImage logoImage;
 PImage startImage;
@@ -56,12 +59,26 @@ void setup() {
   passiveMonsterImg = loadImage("Images/Monster.png");
   activeMonsterImg = loadImage("Images/Monster2.png");
   enemyBulletImg = loadImage("Images/tnfqud.png");
+  star1Img = loadImage("Images/star1.png");
+  star2Img = loadImage("Images/star2.png"); 
+  star3Img = loadImage("Images/star3.png");
   textFont(font);
   playerBullets = new ArrayList<Bullet>();
   enemyBullets = new ArrayList<Bullet>();
   enemies = new ArrayList<Enemy>();
   items = new ArrayList<Item>();
   player = new Player(width / 2, height - 100);
+  stars = new ArrayList<Star>();
+
+  for (int i = 0; i < 20; i++) {
+    float x = random(width);
+    float y = random(height);
+    float speed = random(0.2, 2);
+    int size = int(random(1, 3));
+    int opacity = int(random(50, 255)); // 투명도 설정
+    stars.add(new Star(x, y, speed, size, opacity));
+  }
+
   frameRate(60);
 }
 
@@ -114,7 +131,7 @@ void draw() {
 }
 
 void runGame() {
-  background(0);
+  drawBackground();
   player.move();
   player.display();
   player.shoot(playerBullets);
@@ -296,8 +313,8 @@ void mousePressed() {
 
 void drawMenu() {
   background(0);
-  imageMode(CORNER);
-  image(backgroundImage, 0, 0, width, height);
+  
+  drawBackground();
 
   imageMode(CENTER);
   image(ssuTaxiImage, width/2 + sin(xTemp) * 300, height/2 + sin(yTemp) * 40, 150, 150);
@@ -477,4 +494,12 @@ void showEffectText(String msg) {
   effectTextTimer = 120;  // 2초 정도 유지
 }
 
-
+void drawBackground() {
+  imageMode(CORNER);
+  image(backgroundImage, 0, 0, width, height); // 배경 이미지 그리기
+  for (Star star : stars) {
+    star.move();
+    star.display();
+  }
+  tint(255,255);
+}
