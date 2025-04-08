@@ -55,8 +55,8 @@ void display() {
 
   } else {
     // 🔴 적의 총알은 기존 원 형태
-    fill(255, 0, 0);
-    ellipse(x, y, 10, 20);
+    imageMode(CENTER);
+    image(enemyBulletImg, x, y, 10, 30);  // 원하는 크기로 조절 가능
   }
 }
 

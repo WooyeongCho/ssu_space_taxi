@@ -135,11 +135,20 @@ class Enemy {
           rect(beamCenter - beamWidth / 2 + offset, y + 150, beamWidth - offset * 2, height);
         }
       }
+    } else if (type == EnemyType.PASSIVE) {
+      imageMode(CENTER);
+      tint(255, fadeAlpha);
+      image(passiveMonsterImg, x + 20, y + 20, 40, 40);
+      noTint();
     } else {
-      fill(255, 0, 0, fadeAlpha);
-      rect(x, y, 40, 40);
+      imageMode(CENTER);
+      tint(255, fadeAlpha);
+      image(activeMonsterImg, x + 20, y + 20, 40, 60);
+      noTint();
     }
   }
+
+
 
   void fireBarrage() {
     for (int i = -3; i <= 3; i++) {

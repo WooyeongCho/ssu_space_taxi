@@ -6,6 +6,18 @@ ArrayList<Item> items;
 Player player;
 PImage playerImg;
 PImage bossImg;
+PImage backgroundImage; 
+PImage logoImage;
+PImage startImage;
+PImage ssuTaxiImage;
+PFont neodgm;
+PImage passiveMonsterImg;
+PImage activeMonsterImg;
+PImage enemyBulletImg;
+
+
+float xTemp = 0;
+float yTemp = 0;
 String gameState = "menu";
 int score = 0;
 int stageLevel = 0;
@@ -20,12 +32,23 @@ float shakeX = 0;
 float shakeY = 0;
 int shakeTimer = 0;
 float shakeStrength = 5;
+String playerName = "";
+boolean typingName = false;
 
 void setup() {
   size(800, 600);
+  noSmooth();
   playerImg = loadImage("Images/Player.png");
   bossImg = loadImage("Images/Boss.png");
   font = createFont("Malgun Gothic", 24);
+  backgroundImage = loadImage("Images/background.png"); // 배경 이미지 로드
+  logoImage = loadImage("Images/logo.png"); // 로고 이미지 로드
+  startImage = loadImage("Images/start.png"); // 시작 이미지 로드
+  ssuTaxiImage = loadImage("Images/Player.png"); // SSU 택시 이미지 로드
+  neodgm = createFont("Images/neodgm.ttf", 20); // 폰트 로드
+  passiveMonsterImg = loadImage("Images/Monster.png");
+  activeMonsterImg = loadImage("Images/Monster2.png");
+  enemyBulletImg = loadImage("Images/tnfqud.png");
   textFont(font);
   playerBullets = new ArrayList<Bullet>();
   enemyBullets = new ArrayList<Bullet>();
@@ -85,7 +108,6 @@ void draw() {
 
 void runGame() {
   background(0);
-  drawUI();
   player.move();
   player.display();
   player.shoot(playerBullets);
@@ -123,6 +145,7 @@ void runGame() {
     if (b.offScreen()) enemyBullets.remove(i);
   }
 
+  drawUI();
   checkCollisions();
 }
 
@@ -237,9 +260,14 @@ void startGame() {
 
 void mousePressed() {
   if (gameState.equals("menu")) {
-    if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 &&
-        mouseY > height / 2 + 100 && mouseY < height / 2 + 150) {
-      startGame();
+    float buttonX = width/2;
+    float buttonY = height - 110;
+    float buttonWidth = 120;
+    float buttonHeight = 55;
+
+    if (mouseX > buttonX - buttonWidth/2 && mouseX < buttonX + buttonWidth/2 &&
+        mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2) {
+      startGame();  // 🚀 게임 시작
     }
   } else if (gameState.equals("gameover")) {
     if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 &&
@@ -250,25 +278,26 @@ void mousePressed() {
 }
 
 void drawMenu() {
-  background(20);
+  background(0);
+  imageMode(CORNER);
+  image(backgroundImage, 0, 0, width, height);
 
-  // 게임 타이틀
+  imageMode(CENTER);
+  image(ssuTaxiImage, width/2 + sin(xTemp) * 300, height/2 + sin(yTemp) * 40, 150, 150);
+  image(logoImage, width/2, 150, 310, 155);
+  image(startImage, width/2, height - 110, 120, 55);
+
+  textFont(neodgm);
   fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(48);
-  text("🚀 GALAGA DEFENSE", width / 2, height / 3);
+  textAlign(CENTER);
+  text("슝슝이를 SSU-25 행성까지", width/2, height/2 - 20);
+  text("안전하게 태워다줄 수 있을까?!", width/2, height/2 + 5);
+  text("우주 속 위험천만한 대모험", width/2, height/2 + 30);
+  text("WASD - 이동 | 마우스 클릭 - 공격", width/2, height/2 + 80);
+  text("총알 업그레이드는 강화 아이템을 먹어보세요!", width/2, height/2 + 105);
 
-  // 설명
-  textSize(18);
-  text("WASD - 이동   |   마우스 클릭 - 공격", width / 2, height / 2);
-  text("총알 업그레이드는 강화 아이템을 먹어보세요!", width / 2, height / 2 + 30);
-
-  // 버튼
-  fill(50, 150, 255);
-  rect(width / 2 - 75, height / 2 + 100, 150, 50);
-  fill(255);
-  textSize(20);
-  text("게임 시작", width / 2, height / 2 + 125);
+  xTemp = (xTemp + 0.01) % TWO_PI;
+  yTemp = (yTemp + 0.02) % TWO_PI;
 }
 
 
@@ -388,7 +417,7 @@ void applyItemEffect(String type) {
   else if (type.equals("cooldown")) {
     player.shotCooldown = max(player.shotCooldown - 100, 100);
     player.effectTimer = 60;
-    showEffectText("공격속도 상승!!");
+    showEffectText("공격속도 상승!");
   }
 }
 
