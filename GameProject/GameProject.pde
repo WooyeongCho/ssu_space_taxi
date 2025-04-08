@@ -88,8 +88,8 @@ void setup() {
   star3Img = loadImage("Images/star3.png");
   increaseImg = loadImage("Images/Increase.png");
   reloadImg = loadImage("Images/Reload.png");
-  phoneImg = loadImage("Images/phone.png");
-  ssuBodyImg = loadImage("Images/ssu_body.png");
+  //phoneImg = loadImage("Images/phone.png");
+  //ssuBodyImg = loadImage("Images/ssu_body.png");
   viewRankingButtonImg = loadImage("Images/Viewranking.png");  // 랭킹 보기 버튼 이미지
   textFont(font);
   playerBullets = new ArrayList<Bullet>();
@@ -141,7 +141,7 @@ void draw() {
     drawMenu();
   } else if (gameState.equals("gameover")) {
     drawGameOver();
-  }else if(gameState.equals("ranking")) {
+  } else if(gameState.equals("ranking")) {
     drawRanking();
   }
 
@@ -384,7 +384,8 @@ void mousePressed() {
     float viewRankingButtonX = centerX + 20;  // 오른쪽 버튼
     if (mouseX > viewRankingButtonX - buttonWidth / 2 && mouseX < viewRankingButtonX + buttonWidth / 2 &&
         mouseY > buttonY - buttonHeight / 2 && mouseY < buttonY + buttonHeight / 2) {
-      gameState = "ranking";  // 랭킹 페이지로 이동
+          println("랭킹 버튼 클릭됨");  // 디버깅용 출력
+          gameState = "ranking";  // 랭킹 페이지로 이동
     }
   }
 
@@ -397,10 +398,26 @@ void mousePressed() {
 
   // 랭킹 화면에서 게임 화면으로 돌아가기 버튼 클릭
   if (gameState.equals("ranking")) {
-    if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 && mouseY > height - 100 && mouseY < height - 50) {
+    float buttonWidth = 150;
+    float buttonHeight = 50;
+    float buttonX = width - buttonWidth / 2 - 20;  // 오른쪽 끝에서 20px 떨어진 위치
+    float buttonY = height - buttonHeight / 2 - 20;  // 아래쪽에서 20px 떨어진 위치
+
+    // 클릭 범위 확인 (Back to Game 버튼 클릭)
+    if (mouseX > buttonX - buttonWidth / 2 && mouseX < buttonX + buttonWidth / 2 &&
+        mouseY > buttonY - buttonHeight / 2 && mouseY < buttonY + buttonHeight / 2) {
       gameState = "menu";  // 게임 화면으로 돌아가기
     }
   }
+
+  if (gameState.equals("prologue")) {
+    if (prologueIndex < prologueText.length - 1) {
+      prologueIndex++;
+    } else {
+      gameState = "menu";  // 프로로그 끝나면 메뉴로
+    }
+  }
+
 }
 
 void drawMenu() {
@@ -412,8 +429,8 @@ void drawMenu() {
   float centerX = width / 2;
 
   // 버튼들의 x 좌표 설정 (대칭 위치)
-  float startButtonX = centerX - (buttonWidth + 20);  // 왼쪽 버튼
-  float viewRankingButtonX = centerX + 20;  // 오른쪽 버튼
+  float startButtonX = centerX -80;  // 왼쪽 버튼
+  float viewRankingButtonX = centerX + 80;  // 오른쪽 버튼
 
   // 버튼 위치 조정
   float buttonY = height - 70;
@@ -685,11 +702,21 @@ void drawRanking() {
     y += 30;  // 줄 간격 설정
   }
 
-  // 다시 게임으로 돌아가기 버튼
+  // 다시 게임으로 돌아가기 버튼을 오른쪽 아래로 배치
+  float buttonWidth = 150;
+  float buttonHeight = 50;
+  float buttonX = width - buttonWidth / 2 - 20;  // 오른쪽 끝에서 20px 떨어진 위치
+  float buttonY = height - buttonHeight / 2 - 20;  // 아래쪽에서 20px 떨어진 위치
+
+  // 버튼 배경
   fill(50, 150, 255);
-  rect(width / 2 - 75, height - 100, 150, 50);
+  
+  rectMode(CORNER);
+  rect(buttonX - buttonWidth / 2, buttonY - buttonHeight / 2, buttonWidth, buttonHeight);
+
+  // 버튼 텍스트
   fill(255);
   textSize(20);
-  text("Back to Game", width / 2, height - 75);
+  text("뒤로", buttonX, buttonY);
 }
 
