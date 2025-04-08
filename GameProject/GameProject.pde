@@ -25,8 +25,14 @@ PFont neodgm;
 PImage passiveMonsterImg;
 PImage activeMonsterImg;
 PImage enemyBulletImg;
+<<<<<<< Updated upstream
 
 PImage phoneImg;
+=======
+PImage viewRankingButtonImg;
+float buttonWidth = 120;
+float buttonHeight = 55;
+>>>>>>> Stashed changes
 
 float xTemp = 0;
 float yTemp = 0;
@@ -84,8 +90,12 @@ void setup() {
   star3Img = loadImage("Images/star3.png");
   increaseImg = loadImage("Images/Increase.png");
   reloadImg = loadImage("Images/Reload.png");
+<<<<<<< Updated upstream
   phoneImg = loadImage("Images/phone.png");
   ssuBodyImg = loadImage("Images/ssu_body.png");
+=======
+  viewRankingButtonImg = loadImage("Images/Viewranking.png");  // 랭킹 보기 버튼 이미지
+>>>>>>> Stashed changes
   textFont(font);
   playerBullets = new ArrayList<Bullet>();
   enemyBullets = new ArrayList<Bullet>();
@@ -353,35 +363,44 @@ void startGame() {
   setupGame();
   println("플레이어 이름: " + playerName);  // ✅ 디버깅용 출력
 }
-
 void mousePressed() {
+  // 게임 시작 버튼 클릭 처리
   if (gameState.equals("menu")) {
-    float buttonX = width / 2;
-    float buttonY = height - 70;
     float buttonWidth = 120;
     float buttonHeight = 55;
+    float centerX = width / 2;
+    float buttonY = height - 70;
 
-    if (mouseX > buttonX - buttonWidth/2 && mouseX < buttonX + buttonWidth/2 &&
-        mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2) {
+    // 게임 시작 버튼 (왼쪽 버튼)
+    float startButtonX = centerX - (buttonWidth + 20);  // 왼쪽 버튼
+    if (mouseX > startButtonX - buttonWidth / 2 && mouseX < startButtonX + buttonWidth / 2 &&
+        mouseY > buttonY - buttonHeight / 2 && mouseY < buttonY + buttonHeight / 2) {
 
       if (playerName.trim().equals("")) {
         warningText = "이름을 입력하세요!";
         warningTimer = 120;  // 2초
       } else {
-        startGame();  // 이름이 있으면 시작
+        startGame();  // 이름이 있으면 게임 시작
       }
+    }
+
+    // 랭킹 보기 버튼 (오른쪽 버튼)
+    float viewRankingButtonX = centerX + 20;  // 오른쪽 버튼
+    if (mouseX > viewRankingButtonX - buttonWidth / 2 && mouseX < viewRankingButtonX + buttonWidth / 2 &&
+        mouseY > buttonY - buttonHeight / 2 && mouseY < buttonY + buttonHeight / 2) {
+      gameState = "ranking";  // 랭킹 페이지로 이동
     }
   }
 
+  // 게임 오버 화면에서 다시 시작 버튼 클릭
   if (gameState.equals("gameover")) {
-    // 게임 오버 화면에서 게임 다시 시작
     if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 && mouseY > height / 2 + 80 && mouseY < height / 2 + 130) {
       gameState = "menu";  // 메뉴로 돌아가기
     }
   }
 
+  // 랭킹 화면에서 게임 화면으로 돌아가기 버튼 클릭
   if (gameState.equals("ranking")) {
-    // 랭킹 화면에서 게임 화면으로 돌아가기
     if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 && mouseY > height - 100 && mouseY < height - 50) {
       gameState = "menu";  // 게임 화면으로 돌아가기
     }
@@ -397,16 +416,34 @@ void mousePressed() {
 }
 
 
+
 void drawMenu() {
   background(0);
   
   drawBackground();
 
+  // 중앙 x 좌표
+  float centerX = width / 2;
+
+  // 버튼들의 x 좌표 설정 (대칭 위치)
+  float startButtonX = centerX - (buttonWidth + 20);  // 왼쪽 버튼
+  float viewRankingButtonX = centerX + 20;  // 오른쪽 버튼
+
+  // 버튼 위치 조정
+  float buttonY = height - 70;
+
+  // 버튼 이미지 그리기
   imageMode(CENTER);
+  image(startImage, startButtonX, buttonY, buttonWidth, buttonHeight);
+  image(viewRankingButtonImg, viewRankingButtonX, buttonY, buttonWidth, buttonHeight);
   image(ssuTaxiImage, width/2 + sin(xTemp) * 300, height/2 + sin(yTemp) * 40, 150, 150);
   image(logoImage, width/2, 150, 310, 155);
-  // 게임 시작 버튼 Y위치 조정
-image(startImage, width / 2, height - 70, 120, 55);
+
+  // 버튼 텍스트
+  textFont(neodgm);
+  fill(255);
+  textAlign(CENTER);
+  textSize(16);
 
   textFont(neodgm);
   fill(255);
@@ -594,7 +631,7 @@ void drawBackground() {
 void sendScore(String name, int score) {
   String url = "https://script.google.com/macros/s/AKfycbxYKaFENO-G1pPn3fs4ssdWJ2cEDbP_aT759Zyq0sUxF9RmuSCxNLU4xEJ7rWIzyS7f/exec?action=submitScore&name=" + name + "&score=" + score;
   
-  // GET 요청으로 점수 제출
+  // GET 요청으로  점수 제출출
   loadStrings(url);
 }
 void loadRankings() {
@@ -602,14 +639,8 @@ void loadRankings() {
   
   // GET 요청으로 랭킹 데이터 가져오기
   String[] rankingsData = loadStrings(url);
-
-  // JSON 데이터를 첫 번째 줄에 있다고 가정
   String jsonString = rankingsData[0];
-
-  // 불필요한 문자 제거 (예: "[" , "]" 제거)
   jsonString = jsonString.replace("[", "").replace("]", "");
-
-  // 각 항목을 구분하여 처리 (JSON 객체는 중괄호로 묶여 있으므로 이를 쪼갬)
   String[] items = split(jsonString, "},{");
 
   // 아이템을 하나씩 처리
