@@ -1,0 +1,400 @@
+
+ArrayList<Bullet> playerBullets;
+ArrayList<Bullet> enemyBullets;
+ArrayList<Enemy> enemies;
+ArrayList<Item> items;
+Player player;
+PImage playerImg;
+PImage bossImg;
+String gameState = "menu";
+int score = 0;
+int stageLevel = 0;
+PFont font;
+char currentDir = ' ';
+String effectText = "";
+int effectTextTimer = 0;
+int stageAnnounceTimer = 0;
+String currentStageText = "";
+boolean spacePressed = false;
+float shakeX = 0;
+float shakeY = 0;
+int shakeTimer = 0;
+float shakeStrength = 5;
+
+void setup() {
+  size(800, 600);
+  playerImg = loadImage("Images/Player.png");
+  bossImg = loadImage("Images/Boss.png");
+  font = createFont("Malgun Gothic", 24);
+  textFont(font);
+  playerBullets = new ArrayList<Bullet>();
+  enemyBullets = new ArrayList<Bullet>();
+  enemies = new ArrayList<Enemy>();
+  items = new ArrayList<Item>();
+  player = new Player(width / 2, height - 100);
+  frameRate(60);
+}
+
+void draw() {
+  background(0);
+  if (shakeTimer > 0) {
+    shakeX = random(-shakeStrength, shakeStrength);
+    shakeY = random(-shakeStrength, shakeStrength);
+    translate(shakeX, shakeY);
+    shakeTimer--;
+  }
+
+  if (gameState.equals("playing")) {
+    runGame();
+    if (enemies.size() == 0) {
+      stageLevel++;
+      setupStage(stageLevel);
+    }
+  } else if (gameState.equals("menu")) {
+    drawMenu();
+  } else if (gameState.equals("gameover")) {
+    drawGameOver();
+  }
+
+  if (player.hp <= 0) {
+    gameState = "gameover";
+  }
+
+  if (frameCount % 60 == 0) {
+    println("FPS: " + frameRate);
+  }
+
+  for (int i = items.size() - 1; i >= 0; i--) {
+    Item item = items.get(i);
+    item.update();
+    item.display();
+    if (item.isCollectedBy(player)) {
+      applyItemEffect(item.type);
+      items.remove(i);
+    }
+  }
+
+  if (effectTextTimer > 0) {
+    fill(255);
+    textAlign(CENTER);
+    textSize(16);
+    text(effectText, player.x + 25, player.y - 10);
+    effectTextTimer--;
+  }
+}
+
+void runGame() {
+  background(0);
+  drawUI();
+  player.move();
+  player.display();
+  player.shoot(playerBullets);
+
+  for (int i = playerBullets.size() - 1; i >= 0; i--) {
+    Bullet b = playerBullets.get(i);
+    b.move();
+    b.display();
+    if (b.offScreen()) playerBullets.remove(i);
+  }
+
+  for (int i = enemies.size() - 1; i >= 0; i--) {
+    Enemy e = enemies.get(i);
+    e.update();
+    e.display();
+
+    if (e.isBoss) {
+      drawBossUI(e);
+      if (e.warningActive) {
+        fill(255, 50, 50, 180);
+        textSize(32);
+        textAlign(CENTER);
+        text("⚠ WARNING ⚠", e.x + 75, e.y - 30);
+      }
+    }
+
+    e.checkBeamHit(player);
+    if (e.isDying && e.fadeAlpha <= 0) enemies.remove(i);
+  }
+
+  for (int i = enemyBullets.size() - 1; i >= 0; i--) {
+    Bullet b = enemyBullets.get(i);
+    b.move();
+    b.display();
+    if (b.offScreen()) enemyBullets.remove(i);
+  }
+
+  checkCollisions();
+}
+
+// Additional functions (checkCollisions, drawUI, keyPressed, etc.)
+// are assumed to remain unchanged and can be appended below...
+
+
+void checkCollisions() {
+  // 플레이어 총알 → 적
+  for (int i = playerBullets.size() - 1; i >= 0; i--) {
+    Bullet b = playerBullets.get(i);
+
+    for (int j = enemies.size() - 1; j >= 0; j--) {
+      Enemy e = enemies.get(j);
+
+      // 충돌 판정 기준 보스/일반 적 분기
+      float ex = e.isBoss ? e.x + 75 : e.x + 20;
+      float ey = e.isBoss ? e.y + 75 : e.y + 20;
+      float radius = e.isBoss ? 60 : 25;
+
+      if (dist(b.x, b.y, ex, ey) < radius) {
+        e.hp -= 10;
+        playerBullets.remove(i);
+
+        if (e.hp <= 0 && !e.isDying) {
+          e.isDying = true;  // 🔥 죽는 중 상태 시작
+
+          float dropChance = 1;  // 드롭 확률 (100%)
+          if (random(1) < dropChance) {
+            String type = random(1) < 0.5 ? "multishot" : "cooldown";
+            items.add(new Item(ex, ey, type));
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  // 적 총알 → 플레이어
+  player.checkCollision(enemyBullets);
+}
+
+
+void keyPressed() {
+    if (key == 'a' || key == 'A') currentDir = 'L';
+    if (key == 'd' || key == 'D') currentDir = 'R';
+      
+    if (key == ' ') spacePressed = true;
+    println("keyPressed: " + key + ", currentDir: " + currentDir);  // 디버깅용
+  }
+
+  void keyReleased() {
+    if ((key == 'a' || key == 'A') && currentDir == 'L') currentDir = ' ';
+    if ((key == 'd' || key == 'D') && currentDir == 'R') currentDir = ' ';
+      
+    if (key == ' ') spacePressed = false;
+  }
+
+void drawUI() {
+  float barWidth = 200;
+  float barHeight = 20;
+  float barX = 20;
+  float barY = height - 40;
+
+  // 배경 바
+  fill(50);
+  rect(barX, barY, barWidth, barHeight);
+
+  // 체력 바
+  float hpRatio = constrain(player.hp / 100.0, 0, 1);  // 0~1로 제한
+  fill(lerpColor(color(255, 0, 0), color(0, 255, 0), hpRatio));  // 체력에 따라 색상 변화
+  rect(barX, barY, barWidth * hpRatio, barHeight);
+
+  // 테두리
+  noFill();
+  stroke(255);
+  rect(barX, barY, barWidth, barHeight);
+  noStroke();
+
+  // 체력 수치 텍스트
+  fill(255);
+  textSize(14);
+  textAlign(LEFT, BOTTOM);
+  text("HP: " + int(player.hp), barX, barY - 5);
+  fill(255);
+  textSize(16);
+  text("STAGE " + stageLevel, width - 100, height - 20);
+  fill(255);
+  fill(255);
+  textAlign(LEFT);
+  textSize(14);
+  text("총알 수: " + player.bulletsPerShot, 20, height - 100);  // ⬅ 더 위로
+  text("쿨타임: " + player.shotCooldown + "ms", 20, height - 80);
+
+  if (stageAnnounceTimer > 0) {
+  textAlign(CENTER, CENTER);
+  textSize(48);
+  
+  int alpha = int(map(stageAnnounceTimer, 120, 0, 255, 0));  // 점점 투명하게
+  fill(255, alpha);
+  text(currentStageText, width / 2, height / 2);
+  
+  stageAnnounceTimer--;
+}
+}
+
+
+void startGame() {
+  gameState = "playing";
+  setupGame();  // 변수 초기화 등
+}
+
+void mousePressed() {
+  if (gameState.equals("menu")) {
+    if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 &&
+        mouseY > height / 2 + 100 && mouseY < height / 2 + 150) {
+      startGame();
+    }
+  } else if (gameState.equals("gameover")) {
+    if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 &&
+        mouseY > height / 2 + 80 && mouseY < height / 2 + 130) {
+      gameState = "menu";  // 다시 메뉴로
+    }
+  }
+}
+
+void drawMenu() {
+  background(20);
+
+  // 게임 타이틀
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(48);
+  text("🚀 GALAGA DEFENSE", width / 2, height / 3);
+
+  // 설명
+  textSize(18);
+  text("WASD - 이동   |   마우스 클릭 - 공격", width / 2, height / 2);
+  text("총알 업그레이드는 강화 아이템을 먹어보세요!", width / 2, height / 2 + 30);
+
+  // 버튼
+  fill(50, 150, 255);
+  rect(width / 2 - 75, height / 2 + 100, 150, 50);
+  fill(255);
+  textSize(20);
+  text("게임 시작", width / 2, height / 2 + 125);
+}
+
+
+
+void drawGameOver() {
+  background(0);
+  textAlign(CENTER, CENTER);
+
+  // 게임 오버 텍스트
+  fill(255, 50, 50);
+  textSize(48);
+  text("GAME OVER", width / 2, height / 3);
+
+  // (선택) 점수 표시
+  fill(255);
+  textSize(24);
+  text("당신의 생존력: " + int(player.hp) + " HP", width / 2, height / 2);
+
+  // 다시 시작 버튼
+  fill(100, 200, 255);
+  rect(width / 2 - 75, height / 2 + 80, 150, 50);
+  fill(0);
+  textSize(20);
+  text("다시 시작", width / 2, height / 2 + 105);
+}
+
+void setupGame() {
+  // 플레이어 초기화
+  player = new Player(width / 2, height - 100);
+
+  // 총알 리스트 초기화
+  playerBullets = new ArrayList<Bullet>();
+  enemyBullets = new ArrayList<Bullet>();
+
+  // 적 리스트 초기화
+  enemies = new ArrayList<Enemy>();
+
+  // 점수나 강화 상태 초기화
+  score = 0;
+  player.shotCooldown = 300;
+  player.bulletsPerShot = 1;
+
+  // 게임 상태
+  frameCount = 0;  // 게임 시간 리셋 (선택)
+}
+
+void spawnStage1() {
+  for (int i = 0; i < 5; i++) {
+    float x = 100 + i * 120;
+    enemies.add(new Enemy(x, 0, 100, 1, EnemyType.PASSIVE, 0, 0));
+  }
+}
+
+void spawnStage2() {
+  for (int i = 0; i < 5; i++) {
+    float x = 100 + i * 120;
+    float shootCD = 1000 + i * 200;  // 쿨타임 다르게
+    enemies.add(new Enemy(x, 0, 100, 1.2, EnemyType.SHOOTER, 0, shootCD));
+  }
+}
+
+void spawnStage3() {
+  for (int i = 0; i < 3; i++) {
+    float x = 150 + i * 200;
+    float stopY = 120 + i * 40;  // Y위치 다르게
+    enemies.add(new Enemy(x, 0, 120, 1.5, EnemyType.MOVER, stopY, 700 + i * 150));
+  }
+}
+
+void setupStage(int stage) {
+  if (stage == 1) spawnStage1();
+  else if (stage == 2) spawnStage2();
+  else if (stage == 3) spawnStage3();
+  else if (stage == 4) spawnBossStage();
+
+  currentStageText = "STAGE " + stage;
+  stageAnnounceTimer = 200;  // 2초 표시
+}
+
+void spawnBossStage() {
+  Enemy boss = new Enemy(width / 2 - 75, -150, 1000, 1.2, EnemyType.MOVER, 70, 600);
+
+  boss.isBoss = true;
+  boss.maxHp = boss.hp;
+  enemies.add(boss);
+}
+
+void drawBossUI(Enemy boss) {
+  float barWidth = 400;
+  float barHeight = 20;
+  float x = width / 2 - barWidth / 2;
+  float y = 30;
+  float ratio = constrain(boss.hp / boss.maxHp, 0, 1);
+
+  // 배경
+  fill(50);
+  rect(x, y, barWidth, barHeight);
+
+  // 체력바
+  fill(255, 0, 0);
+  rect(x, y, barWidth * ratio, barHeight);
+
+  // 테두리
+  noFill();
+  stroke(255);
+  rect(x, y, barWidth, barHeight);
+  noStroke();
+}
+
+
+void applyItemEffect(String type) {
+  if (type.equals("multishot")) {
+    player.bulletsPerShot += 1;
+    player.effectTimer = 60;
+    showEffectText("총알 수 증가!!");
+  } 
+  else if (type.equals("cooldown")) {
+    player.shotCooldown = max(player.shotCooldown - 100, 100);
+    player.effectTimer = 60;
+    showEffectText("공격속도 상승!!");
+  }
+}
+
+void showEffectText(String msg) {
+  effectText = msg;
+  effectTextTimer = 120;  // 2초 정도 유지
+}
+
+
