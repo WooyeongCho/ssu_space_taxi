@@ -1,7 +1,7 @@
 class Item {
   float x, y;
-  float speed = 2;
   String type;
+  float size = 30;
 
   Item(float x, float y, String type) {
     this.x = x;
@@ -10,18 +10,19 @@ class Item {
   }
 
   void update() {
-    y += speed;
+    y += 2;  // 아래로 떨어짐
   }
 
   void display() {
-    if (type.equals("multishot")) fill(0, 255, 255);
-    else if (type.equals("rapidfire")) fill(255, 255, 0);
-    else fill(255);
-
-    ellipse(x, y, 20, 20);
+    imageMode(CENTER);
+    if (type.equals("multishot")) {
+      image(increaseImg, x, y, size, size);
+    } else if (type.equals("cooldown")) {
+      image(reloadImg, x, y, size, size);
+    }
   }
 
   boolean isCollectedBy(Player p) {
-    return dist(x, y, p.x + 25, p.y + 25) < 30;
+    return dist(x, y, p.x + 40, p.y + 40) < 30;
   }
 }

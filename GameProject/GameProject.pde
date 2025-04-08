@@ -7,6 +7,8 @@ ArrayList<Star> stars;
 Player player;
 ArrayList<Particle> particles = new ArrayList<Particle>();
 ArrayList<Trail> trails = new ArrayList<Trail>();
+ArrayList<Ranking> rankings = new ArrayList<Ranking>();
+PImage increaseImg, reloadImg;
 PImage playerImg;
 PImage bossImg;
 PImage backgroundImage;
@@ -50,6 +52,7 @@ int warningTimer = 0;
 void setup() {
   size(800, 600);
   noSmooth();
+  loadRankings();
   playerImg = loadImage("Images/Player.png");
   bossImg = loadImage("Images/Boss.png");
   font = createFont("Malgun Gothic", 24);
@@ -64,6 +67,8 @@ void setup() {
   star1Img = loadImage("Images/star1.png");
   star2Img = loadImage("Images/star2.png"); 
   star3Img = loadImage("Images/star3.png");
+  increaseImg = loadImage("Images/Increase.png");
+  reloadImg = loadImage("Images/Reload.png");
   textFont(font);
   playerBullets = new ArrayList<Bullet>();
   enemyBullets = new ArrayList<Bullet>();
@@ -105,6 +110,8 @@ void draw() {
     drawMenu();
   } else if (gameState.equals("gameover")) {
     drawGameOver();
+  }else if(gameState.equals("ranking")) {
+    drawRanking();
   }
 
   if (player.hp <= 0) {
@@ -243,6 +250,7 @@ void keyPressed() {
   if (key == 'd' || key == 'D') currentDir = 'R';
   if (key == 'w' || key == 'W') currentDir = 'U';
   if (key == 's' || key == 'S') currentDir = 'D';
+  if(key == 'r' || key == 'R') gameState = "ranking";  // 랭킹 화면으로 전환
   if (key == ' ') spacePressed = true;
 }
 
@@ -336,6 +344,20 @@ void mousePressed() {
       } else {
         startGame();  // 이름이 있으면 시작
       }
+    }
+  }
+
+  if (gameState.equals("gameover")) {
+    // 게임 오버 화면에서 게임 다시 시작
+    if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 && mouseY > height / 2 + 80 && mouseY < height / 2 + 130) {
+      gameState = "menu";  // 메뉴로 돌아가기
+    }
+  }
+
+  if (gameState.equals("ranking")) {
+    // 랭킹 화면에서 게임 화면으로 돌아가기
+    if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 && mouseY > height - 100 && mouseY < height - 50) {
+      gameState = "menu";  // 게임 화면으로 돌아가기
     }
   }
 }
@@ -533,3 +555,84 @@ void drawBackground() {
   }
   tint(255,255);
 }
+
+
+void sendScore(String name, int score) {
+  String url = "https://script.google.com/macros/s/AKfycbxYKaFENO-G1pPn3fs4ssdWJ2cEDbP_aT759Zyq0sUxF9RmuSCxNLU4xEJ7rWIzyS7f/exec?action=submitScore&name=" + name + "&score=" + score;
+  
+  // GET 요청으로 점수 제출
+  loadStrings(url);
+}
+void loadRankings() {
+  String url = "https://script.google.com/macros/s/AKfycbxYKaFENO-G1pPn3fs4ssdWJ2cEDbP_aT759Zyq0sUxF9RmuSCxNLU4xEJ7rWIzyS7f/exec?action=getRankings";
+  
+  // GET 요청으로 랭킹 데이터 가져오기
+  String[] rankingsData = loadStrings(url);
+
+  // JSON 데이터를 첫 번째 줄에 있다고 가정
+  String jsonString = rankingsData[0];
+
+  // 불필요한 문자 제거 (예: "[" , "]" 제거)
+  jsonString = jsonString.replace("[", "").replace("]", "");
+
+  // 각 항목을 구분하여 처리 (JSON 객체는 중괄호로 묶여 있으므로 이를 쪼갬)
+  String[] items = split(jsonString, "},{");
+
+  // 아이템을 하나씩 처리
+  for (int i = 0; i < items.length; i++) {
+    String item = items[i];
+    
+    // 중괄호를 다시 추가하여 JSON 형식으로 복원
+    if (i != 0) item = "{" + item;
+    if (i != items.length - 1) item = item + "}";
+
+    // 각 항목에서 필요한 값을 추출
+    String name = getValueFromJson(item, "name");
+    int score = int(getValueFromJson(item, "score"));
+    println("name: " + name + ", score: " + score);  // 디버깅용 출력
+    int rank = int(getValueFromJson(item, "rank"));
+    println("rank: " + rank);  // 디버깅용 출력
+
+    // Ranking 객체 생성 후 리스트에 추가
+    rankings.add(new Ranking(name, score, rank));
+  }
+}
+
+// JSON 문자열에서 키에 해당하는 값을 추출하는 함수
+String getValueFromJson(String json, String key) {
+  String pattern = "\"" + key + "\":\"?([^\",}]+)\"?";  // key: "name" 형태로 추출
+  String[] matches = match(json, pattern);
+  
+  // matches 배열에서 결과가 있으면 반환, 없으면 빈 문자열 반환
+  if (matches != null && matches.length > 1) {
+    return matches[1].trim();  // trim()을 사용하여 불필요한 공백 제거
+  }
+  return "";
+}
+
+
+void drawRanking() {
+  background(0);  // 배경색을 검정으로
+
+  // 게임 상태 텍스트
+  fill(255);
+  textAlign(CENTER);
+  textSize(48);
+  text("RANKINGS", width / 2, 50);
+
+  // 랭킹 출력
+  int y = 100;
+  for (Ranking r : rankings) {
+    textSize(20);
+    text(r.rank + ". " + r.name + " - " + r.score, width / 2, y);
+    y += 30;  // 줄 간격 설정
+  }
+
+  // 다시 게임으로 돌아가기 버튼
+  fill(50, 150, 255);
+  rect(width / 2 - 75, height - 100, 150, 50);
+  fill(255);
+  textSize(20);
+  text("Back to Game", width / 2, height - 75);
+}
+
