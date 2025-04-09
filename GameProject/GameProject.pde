@@ -372,6 +372,7 @@ void startGame() {
   gameState = "playing";
   typingName = false;  // ✅ 이름 입력 종료!
   setupGame();
+  player.hp = 100;
   println("플레이어 이름: " + playerName);  // ✅ 디버깅용 출력
   startTime = millis();  // 게임 시작 시간 기록
   println("게임 시작 시간: " + startTime);  // ✅ 디버깅용 출력
@@ -411,6 +412,10 @@ void mousePressed() {
   if (gameState.equals("gameover")) {
     if (mouseX > width / 2 - 75 && mouseX < width / 2 + 75 && mouseY > height / 2 + 80 && mouseY < height / 2 + 130) {
       gameState = "menu";  // 메뉴로 돌아가기
+      setupGame();
+      stageLevel = 0;
+      typingName = true;  // 이름 입력 가능
+      playerName = "";  // 플레이어 이름 초기화
     }
   }
 

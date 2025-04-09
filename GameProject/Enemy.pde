@@ -216,7 +216,7 @@ class Enemy {
 
     if (p.x + 25 > beamX - beamW / 2 && p.x + 25 < beamX + beamW / 2) {
       if (p.y + 25 > y + 150) {
-        p.hp -= 0.5;
+        p.hp -= 1;
       }
     }
   }
