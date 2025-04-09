@@ -126,8 +126,17 @@ class Enemy {
     image(bossImg, x + 75, y + 75, 150, 150);
     noTint();
 
-    if (beamActive) {
-      // ... 빔 그리는 코드 ...
+    if (beamActive) {  // 빔이 활성화된 상태일 때
+      noStroke();
+      float beamCenter = x + 75;  // 보스의 중앙 위치
+      float beamWidth = 40;  // 빔의 너비
+
+      // 불 느낌의 빨간 빔을 그리기
+      for (int i = 0; i < 4; i++) {
+        float offset = i * 4;  // 점점 좁혀지는 빔 효과
+        fill(255, 50, 0, 180 - i * 40);  // 불빛 효과, 불투명도 점차 감소
+        rect(beamCenter - beamWidth / 2 + offset, y + 150, beamWidth - offset * 2, height);  // 빔 그리기
+      }
     }
   } else {
     // 이미지 출력

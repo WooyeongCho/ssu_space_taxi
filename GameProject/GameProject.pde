@@ -13,7 +13,7 @@ PImage increaseImg, reloadImg;
 PImage playerImg;
 PImage bossImg;
 PImage backgroundImage;
-
+PImage EndingbackgroundImage;
 PImage star1Img;
 PImage star2Img;
 PImage star3Img;
@@ -41,7 +41,7 @@ int score = 0;
 
 
 
-int stageLevel = 0;
+int stageLevel = 3;
 
 
 
@@ -99,6 +99,7 @@ void setup() {
   star3Img = loadImage("Images/star3.png");
   increaseImg = loadImage("Images/Increase.png");
   reloadImg = loadImage("Images/Reload.png");
+  EndingbackgroundImage = loadImage("Images/EndingBackground.jpg");
   //phoneImg = loadImage("Images/phone.png");
   //ssuBodyImg = loadImage("Images/ssu_body.png");
   viewRankingButtonImg = loadImage("Images/Viewranking.png");  // 랭킹 보기 버튼 이미지
@@ -196,7 +197,7 @@ void draw() {
 
 
 void runGame() {
-  resetMatrix();  // 화면 흔들림 좌표 초기화
+  
   drawBackground(); // 배경 그리기
   player.move();
   player.display();
@@ -617,7 +618,11 @@ void gameClear() {
 
 void drawGameClear() {
   background(0);  // 배경색을 검정으로
+  drawEndingBackground();
+  image(ssuTaxiImage, width/2 + sin(xTemp) * 300, height/2 + sin(yTemp) * 40, 150, 150);
 
+  xTemp = (xTemp + 0.01) % TWO_PI;
+  yTemp = (yTemp + 0.02) % TWO_PI;
   // 게임 클리어 텍스트
   fill(255);
   textAlign(CENTER);
@@ -646,7 +651,7 @@ void drawGameClear() {
 }
 
 void spawnBossStage() {
-   Enemy boss = new Enemy(width / 2 - 75, -150, 50000, 1.2, EnemyType.MOVER, 70, 600);
+   Enemy boss = new Enemy(width / 2 - 75, -150, 25000, 1.2, EnemyType.MOVER, 70, 600);
 
   boss.isBoss = true;
   boss.maxHp = boss.hp;
@@ -702,6 +707,11 @@ void drawBackground() {
     star.display();
   }
   tint(255,255);
+}
+void drawEndingBackground() {
+  imageMode(CORNER);
+  image(EndingbackgroundImage, 0, 0, width, height); // 배경 이미지 그리기
+  
 }
 
 
