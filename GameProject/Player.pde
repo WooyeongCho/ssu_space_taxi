@@ -4,7 +4,7 @@ class Player {
   float hp = 100;
   int lastShotTime = 0;         // 마지막 발사 시간
   int shotCooldown = 500;       // 쿨타임 (ms), 아이템 먹으면 조절 가능
-  int bulletsPerShot = 5;       // 한 번에 나가는 총알 수
+  int bulletsPerShot = 1;       // 한 번에 나가는 총알 수
   float bulletSpread = 10;      // 총알 간 간격
   int effectTimer = 0;
   color baseColor = color(0, 255, 0);    // 기본색

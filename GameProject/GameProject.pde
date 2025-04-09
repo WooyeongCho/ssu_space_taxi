@@ -41,7 +41,7 @@ int score = 0;
 
 
 
-int stageLevel = 3;
+int stageLevel = 0;
 
 
 
