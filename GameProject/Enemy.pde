@@ -213,11 +213,14 @@ class Enemy {
 
     float beamX = x + 75;
     float beamW = 40;
+  println("Player Y: " + p.y + ", Beam Y Threshold: " + (y + 150));
 
-    if (p.x + 25 > beamX - beamW / 2 && p.x + 25 < beamX + beamW / 2) {
+   
+      println("Hit by beam!");
       if (p.y + 25 > y + 150) {
+        println("Player hit by beam!");
         p.hp -= 1;
       }
-    }
+    
   }
 }

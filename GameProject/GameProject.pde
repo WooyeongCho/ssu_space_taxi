@@ -656,7 +656,7 @@ void drawGameClear() {
 }
 
 void spawnBossStage() {
-   Enemy boss = new Enemy(width / 2 - 75, -150, 25000, 1.2, EnemyType.MOVER, 70, 600);
+   Enemy boss = new Enemy(width / 2 - 75, -150, 15000, 1.2, EnemyType.MOVER, 70, 600);
 
   boss.isBoss = true;
   boss.maxHp = boss.hp;
