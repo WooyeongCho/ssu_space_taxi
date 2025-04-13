@@ -219,7 +219,7 @@ class Enemy {
       println("Hit by beam!");
       if (p.y + 25 > y + 150) {
         println("Player hit by beam!");
-        p.hp -= 1;
+        // p.hp -= 1;
       }
     
   }
